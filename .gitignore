@@ -1,0 +1,15 @@
+script_*
+errlog_*
+exelog_*
+log_*.txt
+log/
+vendor/
+.bundle/
+
+config/secrets.yml
+
+# swap files
+*.swp
+*.swo
+*~
+.DS_Store
