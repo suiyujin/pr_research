@@ -16,6 +16,7 @@ class Create_timepr_csv
     # １日目のurls_idごとにCSVを作る
     date = START_DATE
     @urls_ids_days[date - START_DATE].values.each do |urls_id|
+      print_variable({urls_id: urls_id, date: date})
       create_csv(urls_id)
     end
   end
@@ -26,15 +27,17 @@ class Create_timepr_csv
     # 指定されたurls_idのPRを日付ごとに格納する
     START_DATE.upto(END_DATE) do |date|
       pagerank = getpagerank_from_adminid(date, getadminid_from_urlsid(date, create_urls_id))
-      print_variable({date: date, pagerank: pagerank})
+      #print_variable({date: date, pagerank: pagerank})
 
-      result_csv.push(pagerank)
+      result_csv.push([pagerank])
     end
     
     write_file_name = "timepagerank_#{PAGE}_from#{START_DATE.yday}to#{END_DATE.yday}_#{create_urls_id}.txt"
 
-    CSV.open("#{RESULTFILE_DIR}#{write_file_name}", 'w') do |write_file|
-      write_file << result_csv
+    CSV.open("#{RESULTFILE_DIR}timepagerank/#{write_file_name}", 'w') do |write_file|
+      result_csv.each do |row|
+        write_file << row
+      end
     end
   end
 
