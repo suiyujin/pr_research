@@ -48,12 +48,14 @@ class Create_timepr_csv
   end
 
   def getadminid_from_urlsid(date, urls_id)
-    @urls_ids_days[date - START_DATE].values.find_index { |urls_id_by_date| urls_id_by_date == urls_id }
+    urls_id_index = @urls_ids_days[date - START_DATE].values.find_index { |urls_id_by_date| urls_id_by_date == urls_id }
+    urls_id_index.nil? ? nil : (urls_id_index + 1)
   end
 
   def getpagerank_from_adminid(date, admin_id)
     return nil if admin_id.nil?
-    @pageranks_days[date - START_DATE].values[admin_id]
+    pagerank_index = admin_id - 1
+    @pageranks_days[date - START_DATE].values[pagerank_index]
   end
 
   def create_pageranks_and_urls_ids_days
