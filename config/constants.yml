@@ -1,0 +1,22 @@
+# page ID
+page: 'yahoo'
+
+# date
+start_date: 2014-01-11
+end_date: 2014-01-31
+skip_dates: []
+a_date: 2
+b_date: 7
+n_date: 7
+m_date: 8
+
+# flag
+matlab: true
+
+# threshold
+th_more_incs:
+  - 2
+
+# params
+reduce_weight: 1.0
+tail_of_file: '_abs2_bonus_date2'
