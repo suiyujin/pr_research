@@ -15,8 +15,9 @@ class AddIndex
   end
 
   def add_index_outid_to_result_tables
-    @start_date.step(@end_date, @step) do |date|
-      table_name = "result_#{date}_from#{@start_date}to#{@end_date}"
+    @start_date.step(@end_date, @date_step) do |date|
+      table_name = "result_#{date.strftime("%Y%m%d")}_from#{@start_date.strftime("%Y%m%d")}to#{@end_date.strftime("%Y%m%d")}"
+      p "table_name : #{table_name}"
       add_index(table_name, 'out_id', ['out_id'])
     end
   end
