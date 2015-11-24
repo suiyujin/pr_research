@@ -23,7 +23,7 @@ class Node
     url.include?('%3A%2F%2F') ? url : CGI.escape(url)
   end
 
-  def decode_url(url)
+  def decode_url(url=@url)
     url.include?('%3A%2F%2F') ? CGI.unescape(url) : url
   end
 
