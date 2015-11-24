@@ -20,19 +20,21 @@ class Node
   end
 
   def get_url_from_hash(hash)
-    MY.query("
+    result = MY.query("
       SELECT url
       FROM urls
       WHERE url_hash = '#{hash}';
-             ").fetch_row[0]
+             ").fetch_row
+    result.nil? ? nil : result[0]
   end
 
   def get_hash_from_url(url)
     en_url = url.include?('%3A%2F%2F') ? url : encode_url(url)
-    MY.query("
+    result = MY.query("
       SELECT url_hash
       FROM urls
       WHERE url = '#{en_url}';
-             ").fetch_row[0]
+             ").fetch_row
+    result.nil? ? nil : result[0]
   end
 end
