@@ -6,9 +6,17 @@ class Node
 
   attr_accessor :id, :url, :url_hash
 
-  def initialize(url)
-    @url = url.include?('%3A%2F%2F') ? url : encode_url(url)
-    @url_hash = get_hash_from_url(url)
+  def initialize(key: 'url', url_or_hash:)
+    case key
+    when 'url' then
+      url = url_or_hash
+      @url = url.include?('%3A%2F%2F') ? url : encode_url(url)
+      @url_hash = get_hash_from_url(url)
+    when 'hash' then
+      hash = url_or_hash
+      @url_hash = hash
+      @url = get_url_from_hash(hash)
+    end
   end
 
   def encode_url(url)
