@@ -13,3 +13,6 @@ config/secrets.yml
 *.swo
 *~
 .DS_Store
+
+src/web_community/sql/*.sql
+src/web_community/csv/*.csv
