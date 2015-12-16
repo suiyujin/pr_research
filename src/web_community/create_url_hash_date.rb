@@ -1,5 +1,3 @@
-require File.expand_path(File.dirname(__FILE__)).sub(/web_community/, 'new') + '/common'
-
 class CreateUrlHashDate
   def self.make_sql_file(date)
     sql = <<-"EOS".gsub(/^\s+\|/, '')
@@ -21,5 +19,6 @@ class CreateUrlHashDate
       sql_file.puts sql
     end
     p "make: #{sql_file_name}"
+    sql_file_name
   end
 end
