@@ -7,9 +7,20 @@ vendor/
 .bundle/
 
 config/secrets.yml
+config/constants.yml
+config/start_urls_*.txt
 
 # swap files
 *.swp
 *.swo
 *~
 .DS_Store
+
+src/web_community/sql/*.sql
+src/web_community/csv/*.csv
+src/web_community/matlab/
+src/web_community/calculate_rank_prestige.m
+src/web_community/calculaterankprestige.m
+src/web_community/rank_prestige.m
+
+result/
