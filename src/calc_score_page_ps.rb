@@ -47,23 +47,23 @@ class CalcScorePagePs
           # 負の場合：下降率を減算
           diff_pr = after_pr - before_pr
 
-          page_p[:score] += (diff_pr / before_pr)
+          # page_p[:score] += (diff_pr / before_pr)
 
-#          if diff_pr >= 0
-#            percentage_raise = (diff_pr / before_pr)
-#            page_p[:score] += percentage_raise
+          if diff_pr >= 0
+            percentage_raise = (diff_pr / before_pr)
+            page_p[:score] += percentage_raise
 #
 #            # さらに上がり続けている場合はボーナスも加える
 #            # (上がり続けている分全て足す)
 #            page_p[:score] += page_p[:bonus_score]
 #            # 次のためにボーナスを増やす
 #            page_p[:bonus_score] += percentage_raise
-#          else
-#             page_p[:score] += (diff_pr / before_pr)
+          else
+            page_p[:score] += (diff_pr / before_pr) * REDUCE_WEIGHT
 #
 #            # 次のボーナスを0にする
 #            page_p[:bonus_score] = 0.0
-#          end
+          end
         end
       end # date
 
