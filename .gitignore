@@ -25,6 +25,11 @@ src/web_community/calculate_rank_prestige.m
 src/web_community/calculaterankprestige.m
 src/web_community/rank_prestige.m
 
-result_maxflow/
-result_matlab/
-result/
+result_maxflow/*
+result_matlab/*
+result/timerankprestige/*
+result/page_ps/*
+result/page_ps_score_2/*
+result/check_pk/*
+result/check_apk/*
+!.keep
