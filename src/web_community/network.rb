@@ -26,8 +26,8 @@ class Network
     end
   end
 
-  def set_seed_nodes
-    seed_nodes = read_start_urls.map { |url| Node.new(url_or_hash: url) }
+  def set_seed_nodes(limit: 20)
+    seed_nodes = read_start_urls.map { |url| Node.new(url_or_hash: url) }[0, limit]
     seed_nodes.each do |node|
       id = get_id_from_hash(hash: node.url_hash)
       unless id.nil?
@@ -35,6 +35,8 @@ class Network
         @seed_nodes << node
       end
     end
+    p "seed.size: #{@seed_nodes.size}"
+    log.info("seed.size: #{@seed_nodes.size}")
   end
 
   def set_level1_nodes
@@ -48,6 +50,8 @@ class Network
         @level1_nodes << node
       end
     end
+    p "level1.size: #{@level1_nodes.size}"
+    log.info("level1.size: #{@level1_nodes.size}")
   end
 
   def set_seed_level1_edges
@@ -70,6 +74,8 @@ class Network
         @seed_level1_edges << edge
       end
     end
+    p "seed_level1.size: #{@seed_level1_edges.size}"
+    log.info("seed_level1.size: #{@seed_level1_edges.size}")
   end
 
   def set_level2_nodes
@@ -85,6 +91,8 @@ class Network
         @level2_nodes << node
       end
     end
+    p "level2.size: #{@level2_nodes.size}"
+    log.info("level2.size: #{@level2_nodes.size}")
   end
 
   def set_level1_level2_edges
@@ -107,6 +115,8 @@ class Network
         @level1_level2_edges << edge
       end
     end
+    p "level1_level2.size: #{@level1_level2_edges.size}"
+    log.info("level1_level2.size: #{@level1_level2_edges.size}")
   end
 
   def write_all_nodes
