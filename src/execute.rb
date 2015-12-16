@@ -51,8 +51,8 @@ class Execute
       ranks = (@target == 'pagerank') ? Pagerank.new(date) : Rankprestige.new(date)
       ranks.read
 
-      # urls_ids = (@target == 'pagerank') ? UrlsId.new(date) : UrlsIdRp.new(date)
-      urls_ids = UrlsIdRp.new(date)
+      urls_ids = (@target == 'pagerank') ? UrlsId.new(date) : UrlsIdRp.new(date)
+      # urls_ids = UrlsIdRp.new(date)
       urls_ids.find(ranks.values.size)
 
       print_variable(ranks_size: ranks.values.size, urls_ids_size: urls_ids.values.size)
