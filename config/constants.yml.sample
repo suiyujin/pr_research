@@ -1,9 +1,9 @@
 # page ID
-page: 'yahoo'
+page: 'page_id'
 
 # date
-start_date: 2014-01-11
-end_date: 2014-01-31
+start_date: 2015-11-13
+end_date: 2015-12-03
 skip_dates: []
 a_date: 2
 b_date: 7
@@ -19,4 +19,7 @@ th_more_incs:
 
 # params
 reduce_weight: 1.0
-tail_of_file: '_abs2_bonus_date2'
+tail_of_file: ''
+limit_seeds_num: 20
+check_flag: '21_above'
+limit_down_rate: 90
