@@ -8,7 +8,7 @@ class Network
   attr_reader :date, :seed_nodes, :level1_nodes, :level2_nodes,
     :seed_level1_edges, :level1_level2_edges
 
-  def initialize(date:)
+  def initialize(date: , file_suffix: '')
     @date = date
     @seed_nodes = []
     @level1_nodes = []
@@ -17,6 +17,7 @@ class Network
     @seed_level1_edges = []
     @level1_level2_nodes = []
     @level1_level2_edges = []
+    @file_suffix = file_suffix
   end
 
   def read_start_urls
@@ -110,23 +111,25 @@ class Network
 
   def write_all_nodes
     all_nodes = @seed_nodes + @level1_nodes + @level2_nodes
-    all_nodes_file_name = "all_nodes_#{date.strftime('%Y%m%d')}.csv"
+    all_nodes_file_name = "all_nodes_#{date.strftime('%Y%m%d')}#{@file_suffix}.csv"
     File.open("#{File.expand_path(File.dirname(__FILE__))}/csv/#{all_nodes_file_name}", 'w') do |all_nodes_file|
       all_nodes_file.puts(all_nodes.map(&:id).join(','))
     end
     p "wrote: #{all_nodes_file_name}"
+    all_nodes_file_name
   end
 
   def write_file_seeds
-    seeds_file_name = "seeds_#{date.strftime('%Y%m%d')}.csv"
+    seeds_file_name = "seeds_#{date.strftime('%Y%m%d')}#{@file_suffix}.csv"
     File.open("#{File.expand_path(File.dirname(__FILE__))}/csv/#{seeds_file_name}", 'w') do |seeds_file|
       seeds_file.puts(@seed_nodes.map(&:id).join(','))
     end
     p "wrote: #{seeds_file_name}"
+    seeds_file_name
   end
 
   def write_file_edges
-    edges_file_name = "edges_#{date.strftime('%Y%m%d')}.csv"
+    edges_file_name = "edges_#{date.strftime('%Y%m%d')}#{@file_suffix}.csv"
     File.open("#{File.expand_path(File.dirname(__FILE__))}/csv/#{edges_file_name}", 'w') do |edges_file|
       @seed_level1_edges.each do |edge|
         edges_file.puts("#{edge.from_node.id},#{edge.to_node.id}")
@@ -136,6 +139,7 @@ class Network
       end
     end
     p "wrote: #{edges_file_name}"
+    edges_file_name
   end
 
   private
