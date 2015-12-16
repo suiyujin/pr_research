@@ -27,6 +27,7 @@ src/web_community/rank_prestige.m
 
 result_maxflow/*
 result_matlab/*
+result/pagerank*.txt
 result/timerankprestige/*
 result/page_ps/*
 result/page_ps_score_2/*
