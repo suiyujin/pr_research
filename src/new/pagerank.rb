@@ -10,7 +10,7 @@ class Pagerank
   end
 
   def read
-    print_variable({ pageranksfile_name: make_file_name })
+    print_variable(pageranksfile_name: make_file_name)
 
     File::open(RESULTFILE_DIR + make_file_name, "r") do |f|
       @values = matlab? ? f.readlines[0].chomp.split : f.readlines[5].chomp.split

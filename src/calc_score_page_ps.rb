@@ -25,7 +25,9 @@ class CalcScorePagePs
         # Rごとに調べる
         page_ps.each do |page_p|
           # urls_idのindexを調べる
-          urls_id_index = @urls_ids_days[date - START_DATE].values.find_index { |urls_id_by_date| urls_id_by_date == page_p[:urls_id] }
+          urls_id_index = @urls_ids_days[date - START_DATE].values.find_index do |urls_id_by_date|
+            urls_id_by_date == page_p[:urls_id]
+          end
 
           # Rがその日にクロールされていない場合はスコア0とする(次のRへ進む)
           next if urls_id_index.nil?
@@ -38,13 +40,13 @@ class CalcScorePagePs
           # 正の場合：上昇率を加算
           # 負の場合：下降率を減算
           diff_pr = after_pr - before_pr
-          
+
           page_p[:score] += (diff_pr / before_pr)
 
 #          if diff_pr >= 0
 #            percentage_raise = (diff_pr / before_pr)
 #            page_p[:score] += percentage_raise
-#            
+#
 #            # さらに上がり続けている場合はボーナスも加える
 #            # (上がり続けている分全て足す)
 #            page_p[:score] += page_p[:bonus_score]
@@ -52,13 +54,13 @@ class CalcScorePagePs
 #            page_p[:bonus_score] += percentage_raise
 #          else
 #             page_p[:score] += (diff_pr / before_pr)
-#            
+#
 #            # 次のボーナスを0にする
 #            page_p[:bonus_score] = 0.0
 #          end
         end
       end # date
-      
+
       # Rをスコアが高い順にファイルへ書き込む
       # urls_idとscore
       page_ps_sort_by_score = page_ps.sort_by { |page_p| page_p[:score] }.reverse
@@ -72,8 +74,8 @@ class CalcScorePagePs
   def read_page_ps(th_more_inc)
     read_file_name = "#{RESULTFILE_DIR}page_ps/n#{N_DATE}_#{th_more_inc}times_#{PAGE}_from#{START_DATE.strftime('%Y%m%d')}to#{END_DATE.strftime('%Y%m%d')}.csv"
 
-    page_ps_urls_ids = Array.new
-    page_ps_date = Array.new
+    page_ps_urls_ids = []
+    page_ps_date = []
 
     File.open(read_file_name, 'r') do |read_file|
       page_ps_urls_ids_str, page_ps_date_str = read_file.readlines
@@ -82,14 +84,14 @@ class CalcScorePagePs
     end
 
     p "#{read_file_name} read."
-    log.info("#{read_file_name} read.")
+    LOG.info("#{read_file_name} read.")
 
     p "page_ps_urls_ids.size: #{page_ps_urls_ids.size}"
-    log.info("page_ps_urls_ids.size: #{page_ps_urls_ids.size}")
+    LOG.info("page_ps_urls_ids.size: #{page_ps_urls_ids.size}")
     p "page_ps_date.size: #{page_ps_date.size}"
-    log.info("page_ps_date.size: #{page_ps_date.size}")
+    LOG.info("page_ps_date.size: #{page_ps_date.size}")
 
-    page_ps = Array.new
+    page_ps = []
     page_ps_urls_ids.each_with_index do |page_ps_urls_id, index|
       page_ps.push(
         {

@@ -1,5 +1,5 @@
 require 'csv'
-require File.expand_path(File.dirname(__FILE__)) + '/new/common' 
+require File.expand_path(File.dirname(__FILE__)) + '/new/common'
 
 class FindRisePage
   include Common
@@ -12,7 +12,7 @@ class FindRisePage
     Dir::foreach(RESULTFILE_DIR + 'timepagerank/') do |timepagerank_file|
       next if timepagerank_file == "." || timepagerank_file == ".."
 
-      values = Array.new
+      values = []
       File::open(RESULTFILE_DIR + 'timepagerank/' + timepagerank_file, 'r') do |f|
         f.each_line do |line|
           values << line.chomp

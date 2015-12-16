@@ -13,9 +13,8 @@ class CheckPk
   end
 
   def run
-    # 正解条件を指定
+    # 正解条件
     # sudipr_uppr or sudipr or uppr or nodopr or 21_above
-    check_flag = '21_above'
 
     TH_MORE_INCS.each do |th_more_inc|
       # page_ps_scoreファイルからurls_idとscoreを読み込む
@@ -35,9 +34,9 @@ class CheckPk
       LOG.info("#{read_file_name} read.")
 
       p "check_urls_ids.size: #{check_urls_ids.size}"
-      log.info("check_urls_ids.size: #{check_urls_ids.size}")
+      LOG.info("check_urls_ids.size: #{check_urls_ids.size}")
       p "check_urls_scores.size: #{check_urls_scores.size}"
-      log.info("check_urls_scores.size: #{check_urls_scores.size}")
+      LOG.info("check_urls_scores.size: #{check_urls_scores.size}")
 
       ### 適合率を調べる
       ### (条件を切り替えられるようにする)
@@ -52,27 +51,27 @@ class CheckPk
           result_urls_ids << check_urls_id
 
           # 条件に適合した場合は1, 適合しなかった場合は0を結果とする
-          if check_flag == '21_above'
+          if CHECK_FLAG == '21_above'
             result_check << (check_21_above_max_before7?(check_urls_id) ? 1 : 0)
-          elsif check_flag == 'sudipr_uppr'
+          elsif CHECK_FLAG == 'sudipr_uppr'
             if check_sum_diff_pageranks?(check_urls_id) && check_up_pagerank?(check_urls_id)
               result_check << 1
             else
               result_check << 0
             end
-          elsif check_flag == 'sudipr'
+          elsif CHECK_FLAG == 'sudipr'
             result_check << (check_sum_diff_pageranks?(check_urls_id) ? 1 : 0)
-          elsif check_flag == 'uppr'
+          elsif CHECK_FLAG == 'uppr'
             result_check << (check_up_pagerank?(check_urls_id) ? 1 : 0)
-          elsif check_flag == 'nodopr'
+          elsif CHECK_FLAG == 'nodopr'
             result_check << (check_not_down_pagerank?(check_urls_id) ? 1 : 0)
           end
 
         end
       end
-      
+
       # ファイルに書き出す
-      result_file_name = "#{RESULTFILE_DIR}check_pk/n#{N_DATE}_#{th_more_inc}times_#{PAGE}_from#{START_DATE.strftime("%Y%m%d")}to#{END_DATE.strftime("%Y%m%d")}_#{check_flag}_#{REDUCE_WEIGHT.to_i}reduce#{TAIL_OF_FILE}_95.csv"
+      result_file_name = "#{RESULTFILE_DIR}check_pk/n#{N_DATE}_#{th_more_inc}times_#{PAGE}_from#{START_DATE.strftime("%Y%m%d")}to#{END_DATE.strftime("%Y%m%d")}_#{CHECK_FLAG}_#{REDUCE_WEIGHT.to_i}reduce#{TAIL_OF_FILE}_#{LIMIT_DOWN_RATE}.csv"
 
       File.open(result_file_name, 'w') do |result_file|
         result_file.write("#{result_urls_ids.join(',')}\n")
@@ -80,7 +79,7 @@ class CheckPk
       end
 
       p "#{result_file_name} writed."
-      log.info("#{result_file_name} writed.")
+      LOG.info("#{result_file_name} writed.")
 
     end # th_more_incs
 
@@ -89,7 +88,7 @@ class CheckPk
   def check_include_all_date?(urls_id)
     # 残りの全日程(8~21日)に結果が含まれているか調べる
     # 含まれていれば真、欠けていれば偽を返す
-    include_flag = true 
+    include_flag = true
     (START_DATE + 7).upto(END_DATE) do |date|
       unless @urls_ids_days[date - START_DATE].values.include?(urls_id)
         include_flag = false
@@ -99,7 +98,7 @@ class CheckPk
 
     include_flag
   end
-  
+
   def check_21_above_max_before7?(urls_id)
     # 21日目のPageRankが7日目までの最大PageRankから閾値を超えて下がっていなければ正解
     # 最大値より20%値を下げていなければ正解に変更
@@ -146,7 +145,7 @@ class CheckPk
 
       before_pagerank = date_pagerank
     end
-    
+
     # 1/【最終日の時系列Webグラフのノード数】分は誤差とする
     error_range = (1.0 / @pageranks_days[END_DATE - START_DATE].values.size.to_f)
 
@@ -213,7 +212,6 @@ class CheckPk
   def check_inlinks?
     # inlinksが__となっているか調べる
     # 正解なら真、不正解なら偽を返す
-
   end
 
   def check_centrality?
