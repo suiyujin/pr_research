@@ -1,6 +1,6 @@
 require File.expand_path(File.dirname(__FILE__)) + '/common'
 
-class Urls_id
+class UrlsId
   include Common
 
   attr_reader :values

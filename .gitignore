@@ -16,6 +16,8 @@ config/start_urls_*.txt
 *~
 .DS_Store
 
+src/03_normalize_matrix.m
+
 src/web_community/sql/*.sql
 src/web_community/csv/*.csv
 src/web_community/matlab/
@@ -23,4 +25,6 @@ src/web_community/calculate_rank_prestige.m
 src/web_community/calculaterankprestige.m
 src/web_community/rank_prestige.m
 
+result_maxflow/
+result_matlab/
 result/

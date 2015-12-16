@@ -31,7 +31,7 @@ class Create_timepr_csv
 
       result_csv.push([pagerank])
     end
-    
+
     write_file_name = "timepagerank_#{PAGE}_from#{START_DATE.yday}to#{END_DATE.yday}_#{create_urls_id}.txt"
 
     CSV.open("#{RESULTFILE_DIR}timepagerank/#{write_file_name}", 'w') do |write_file|
@@ -74,7 +74,7 @@ class Create_timepr_csv
 
       pageranks = Pagerank.new(date)
       pageranks.read
-      
+
       urls_ids = Urls_id.new(date)
       urls_ids.find(pageranks.values.size)
 
