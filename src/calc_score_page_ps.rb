@@ -1,14 +1,20 @@
 require File.expand_path(File.dirname(__FILE__)) + '/new/common'
+require File.expand_path(File.dirname(__FILE__)) + '/new/rankprestige'
 require File.expand_path(File.dirname(__FILE__)) + '/new/pagerank'
 require File.expand_path(File.dirname(__FILE__)) + '/new/urls_id'
+require File.expand_path(File.dirname(__FILE__)) + '/new/urls_id_rp'
 
 class CalcScorePagePs
   include Common
 
-  def initialize
+  def initialize(ranks_days, urls_ids_days, target: 'pagerank')
     print_file_name
+    p "target: #{target}"
 
-    create_pageranks_and_urls_ids_days
+    @ranks_days = ranks_days
+    @urls_ids_days = urls_ids_days
+
+    @target = target
   end
 
   def run
@@ -32,9 +38,9 @@ class CalcScorePagePs
           # Rがその日にクロールされていない場合はスコア0とする(次のRへ進む)
           next if urls_id_index.nil?
 
-          # 当日のPageRankと2日日のPageRankを調べる
-          before_pr = @pageranks_days[1].values[urls_id_index].to_f
-          after_pr = @pageranks_days[date - START_DATE].values[urls_id_index].to_f
+          # 当日のrankと2日日のrankを調べる
+          before_pr = @ranks_days[1].values[urls_id_index].to_f
+          after_pr = @ranks_days[date - START_DATE].values[urls_id_index].to_f
 
           ### 比較して結果に応じてスコアリング
           # 正の場合：上昇率を加算
@@ -72,7 +78,7 @@ class CalcScorePagePs
   private
 
   def read_page_ps(th_more_inc)
-    read_file_name = "#{RESULTFILE_DIR}page_ps/n#{N_DATE}_#{th_more_inc}times_#{PAGE}_from#{START_DATE.strftime('%Y%m%d')}to#{END_DATE.strftime('%Y%m%d')}.csv"
+    read_file_name = "#{RESULTFILE_DIR}page_ps/#{@target}_a#{A_DATE}_#{th_more_inc}times_#{PAGE}_from#{START_DATE.strftime('%Y%m%d')}to#{END_DATE.strftime('%Y%m%d')}.csv"
 
     page_ps_urls_ids = []
     page_ps_date = []
@@ -113,7 +119,7 @@ class CalcScorePagePs
     # 書き込み用配列を用意
     urls_ids, dates, scores = page_ps_sort_by_score.map(&:values).transpose
 
-    write_file_path = "#{RESULTFILE_DIR}page_ps_score_2/score_n#{N_DATE}_#{th_more_inc}times_#{PAGE}_from#{START_DATE.strftime("%Y%m%d")}to#{END_DATE.strftime("%Y%m%d")}_#{REDUCE_WEIGHT.to_i}reduce#{TAIL_OF_FILE}.csv"
+    write_file_path = "#{RESULTFILE_DIR}page_ps_score_2/#{@target}_score_a#{A_DATE}_b#{B_DATE}_#{th_more_inc}times_#{PAGE}_from#{START_DATE.strftime("%Y%m%d")}to#{END_DATE.strftime("%Y%m%d")}_#{REDUCE_WEIGHT.to_i}reduce#{TAIL_OF_FILE}.csv"
 
     File.open(write_file_path, 'w') do |write_file|
       urls_ids.each { |urls_id| write_file.write("#{urls_id},") }
@@ -137,35 +143,6 @@ class CalcScorePagePs
     end
 
     include_flag
-  end
-
-  def create_pageranks_and_urls_ids_days
-    ### 各日のpageranksとurls_idsを紐付ける
-    @pageranks_days = Array.new
-    @urls_ids_days = Array.new
-
-    START_DATE.upto(END_DATE) do |date|
-      print_dateline(date)
-
-      if SKIP_DATES.include?(date)
-        p "#{date} skipped.(#{PAGE})"
-        LOG.info("#{date} skipped.(#{PAGE})")
-        next
-      end
-
-      pageranks = Pagerank.new(date)
-      pageranks.read
-
-      urls_ids = Urls_id.new(date)
-      urls_ids.find(pageranks.values.size)
-
-      print_variable({pageranks_size: pageranks.values.size, urls_ids_size: urls_ids.values.size})
-
-      @pageranks_days.push(pageranks)
-      @urls_ids_days.push(urls_ids)
-
-      print_line
-    end
   end
 
   def print_file_name

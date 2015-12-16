@@ -1,15 +1,20 @@
 require File.expand_path(File.dirname(__FILE__)) + '/new/common'
 require File.expand_path(File.dirname(__FILE__)) + '/new/pagerank'
+require File.expand_path(File.dirname(__FILE__)) + '/new/rankprestige'
 require File.expand_path(File.dirname(__FILE__)) + '/new/urls_id'
+require File.expand_path(File.dirname(__FILE__)) + '/new/urls_id_rp'
 
 class CheckPk
   include Common
 
-  def initialize
+  def initialize(ranks_days, urls_ids_days, target: 'pagerank')
     print_file_name
 
-    # PageRankとurls_idsを紐付けておく
-    create_pageranks_and_urls_ids_days
+    @ranks_days = ranks_days
+    @urls_ids_days = urls_ids_days
+
+    p "target: #{target}"
+    @target = target
   end
 
   def run
@@ -19,7 +24,7 @@ class CheckPk
     TH_MORE_INCS.each do |th_more_inc|
       # page_ps_scoreファイルからurls_idとscoreを読み込む
       # page_ps_score: 予測スコアの高い順に並んでいる
-      read_file_name = "#{RESULTFILE_DIR}page_ps_score_2/score_n#{N_DATE}_#{th_more_inc}times_#{PAGE}_from#{START_DATE.strftime('%Y%m%d')}to#{END_DATE.strftime('%Y%m%d')}_#{REDUCE_WEIGHT.to_i}reduce#{TAIL_OF_FILE}.csv"
+      read_file_name = "#{RESULTFILE_DIR}page_ps_score_2/#{@target}_score_a#{A_DATE}_b#{B_DATE}_#{th_more_inc}times_#{PAGE}_from#{START_DATE.strftime('%Y%m%d')}to#{END_DATE.strftime('%Y%m%d')}_#{REDUCE_WEIGHT.to_i}reduce#{TAIL_OF_FILE}.csv"
 
       check_urls_ids = Array.new
       check_urls_scores = Array.new
@@ -54,24 +59,24 @@ class CheckPk
           if CHECK_FLAG == '21_above'
             result_check << (check_21_above_max_before7?(check_urls_id) ? 1 : 0)
           elsif CHECK_FLAG == 'sudipr_uppr'
-            if check_sum_diff_pageranks?(check_urls_id) && check_up_pagerank?(check_urls_id)
+            if check_sum_diff_ranks?(check_urls_id) && check_up_rank?(check_urls_id)
               result_check << 1
             else
               result_check << 0
             end
           elsif CHECK_FLAG == 'sudipr'
-            result_check << (check_sum_diff_pageranks?(check_urls_id) ? 1 : 0)
+            result_check << (check_sum_diff_ranks?(check_urls_id) ? 1 : 0)
           elsif CHECK_FLAG == 'uppr'
-            result_check << (check_up_pagerank?(check_urls_id) ? 1 : 0)
+            result_check << (check_up_rank?(check_urls_id) ? 1 : 0)
           elsif CHECK_FLAG == 'nodopr'
-            result_check << (check_not_down_pagerank?(check_urls_id) ? 1 : 0)
+            result_check << (check_not_down_rank?(check_urls_id) ? 1 : 0)
           end
 
         end
       end
 
       # ファイルに書き出す
-      result_file_name = "#{RESULTFILE_DIR}check_pk/n#{N_DATE}_#{th_more_inc}times_#{PAGE}_from#{START_DATE.strftime("%Y%m%d")}to#{END_DATE.strftime("%Y%m%d")}_#{CHECK_FLAG}_#{REDUCE_WEIGHT.to_i}reduce#{TAIL_OF_FILE}_#{LIMIT_DOWN_RATE}.csv"
+      result_file_name = "#{RESULTFILE_DIR}check_pk/#{@target}_a#{A_DATE}_b#{B_DATE}_#{th_more_inc}times_#{PAGE}_from#{START_DATE.strftime("%Y%m%d")}to#{END_DATE.strftime("%Y%m%d")}_#{CHECK_FLAG}_#{REDUCE_WEIGHT.to_i}reduce#{TAIL_OF_FILE}_#{LIMIT_DOWN_RATE}.csv"
 
       File.open(result_file_name, 'w') do |result_file|
         result_file.write("#{result_urls_ids.join(',')}\n")
@@ -100,81 +105,81 @@ class CheckPk
   end
 
   def check_21_above_max_before7?(urls_id)
-    # 21日目のPageRankが7日目までの最大PageRankから閾値を超えて下がっていなければ正解
+    # 21日目のRankが7日目までの最大Rankから閾値を超えて下がっていなければ正解
     # 最大値より20%値を下げていなければ正解に変更
 
     # 7日目までの最大PRを調べる
-    max_pagerank = 0.0
+    max_rank = 0.0
 
     (START_DATE).upto(START_DATE + 6) do |date|
       index_urls_id = @urls_ids_days[date - START_DATE].values.find_index(urls_id)
-      date_pagerank = @pageranks_days[date - START_DATE].values[index_urls_id].to_f
+      date_rank = @ranks_days[date - START_DATE].values[index_urls_id].to_f
 
-      max_pagerank = (max_pagerank < date_pagerank) ? date_pagerank : max_pagerank
+      max_rank = (max_rank < date_rank) ? date_rank : max_rank
     end
 
     # 21日目が閾値以上下降していなければ正解
     index_urls_id_21 = @urls_ids_days.last.values.find_index(urls_id)
-    last_pagerank = @pageranks_days.last.values[index_urls_id_21].to_f
+    last_rank = @ranks_days.last.values[index_urls_id_21].to_f
 
     # 閾値：1/【最終日の総ページ数】
     #threshold = (1.0 / @urls_ids_days.last.values.size.to_f)
 
-    #((max_pagerank - threshold) <= last_pagerank) ? true : false
-    (last_pagerank >= (max_pagerank * 0.95)) ? true : false
+    #((max_rank - threshold) <= last_rank) ? true : false
+    (last_rank >= (max_rank * (LIMIT_DOWN_RATE.to_f / 100.0))) ? true : false
   end
 
-  def check_sum_diff_pageranks?(urls_id)
-    # 7日目から21日目までのpageranksの差分の合計が誤差より上となっているか調べる
+  def check_sum_diff_ranks?(urls_id)
+    # 7日目から21日目までのranksの差分の合計が誤差より上となっているか調べる
     # 結局7日目と21日目を比べているのと同じ
     # 正解なら真、不正解なら偽を返す
 
-    sum_diff_pageranks = 0.0
+    sum_diff_ranks = 0.0
 
-    # 初期値は7日目のPageRank
+    # 初期値は7日目のRank
     index_urls_id = @urls_ids_days[6].values.find_index(urls_id)
-    before_pagerank = @pageranks_days[6].values[index_urls_id].to_f
+    before_rank = @ranks_days[6].values[index_urls_id].to_f
 
     (START_DATE + 7).upto(END_DATE) do |date|
-      # 当日のPagerankと前日の差分を調べる
+      # 当日のrankと前日の差分を調べる
       index_date_urls_id = @urls_ids_days[date - START_DATE].values.find_index(urls_id)
-      date_pagerank = @pageranks_days[date - START_DATE].values[index_date_urls_id].to_f
+      date_rank = @ranks_days[date - START_DATE].values[index_date_urls_id].to_f
 
-      diff_pagerank = date_pagerank - before_pagerank
-      sum_diff_pageranks += diff_pagerank
+      diff_rank = date_rank - before_rank
+      sum_diff_ranks += diff_rank
 
-      before_pagerank = date_pagerank
+      before_rank = date_rank
     end
 
     # 1/【最終日の時系列Webグラフのノード数】分は誤差とする
-    error_range = (1.0 / @pageranks_days[END_DATE - START_DATE].values.size.to_f)
+    error_range = (1.0 / @ranks_days[END_DATE - START_DATE].values.size.to_f)
 
-    #(sum_diff_pageranks >= 0.0) ? true : false
+    #(sum_diff_ranks >= 0.0) ? true : false
     #誤差を認めるようにする
-    ((sum_diff_pageranks + error_range) >= 0) ? true : false
+    ((sum_diff_ranks + error_range) >= 0) ? true : false
   end
 
-  def check_not_down_pagerank?(urls_id)
-    # 8日目以降に7日目のPageRankから指定以上下がらなければ正解
+  def check_not_down_rank?(urls_id)
+    # 8日目以降に7日目のRankから指定以上下がらなければ正解
     # 正解なら真、不正解なら偽を返す
     not_down_flag = true
 
-    # 7日目のPageRank
+    # 7日目のRank
     index_urls_id = @urls_ids_days[6].values.find_index(urls_id)
-    before_pagerank = @pageranks_days[6].values[index_urls_id].to_f
-    
+    before_rank = @ranks_days[6].values[index_urls_id].to_f
+
     # 2割以上下がれば不正解！
-    limit_pagerank = before_pagerank * 0.7
+    limit_rank = before_rank * 0.7
 
     (START_DATE + 7).upto(END_DATE) do |date|
       # 1/【その日の時系列Webグラフのノード数】以上下がれば不正解！
-      #limit_pagerank = before_pagerank - (1.0 / @pageranks_days[date - START_DATE].values.size.to_f)
+      #limit_rank = before_rank - (1.0 / @ranks_days[date - START_DATE].values.size.to_f)
 
-      # 当日のPagerankと7日目のPageRankの差分を調べる
+      # 当日のrankと7日目のRankの差分を調べる
       index_date_urls_id = @urls_ids_days[date - START_DATE].values.find_index(urls_id)
-      date_pagerank = @pageranks_days[date - START_DATE].values[index_date_urls_id].to_f
+      date_rank = @ranks_days[date - START_DATE].values[index_date_urls_id].to_f
 
-      if date_pagerank < limit_pagerank
+      if date_rank < limit_rank
         not_down_flag = false
         break
       end
@@ -183,24 +188,24 @@ class CheckPk
     not_down_flag
   end
 
-  def check_up_pagerank?(urls_id)
-    # 8日目以降に7日目のPageRankから指定以上上がれば正解
+  def check_up_rank?(urls_id)
+    # 8日目以降に7日目のRankから指定以上上がれば正解
     # 正解なら真、不正解なら偽を返す
     up_flag = false
 
-    # 7日目のPageRank
+    # 7日目のRank
     index_urls_id = @urls_ids_days[6].values.find_index(urls_id)
-    before_pagerank = @pageranks_days[6].values[index_urls_id].to_f
+    before_rank = @ranks_days[6].values[index_urls_id].to_f
 
     (START_DATE + 7).upto(END_DATE) do |date|
       # 1/【その日の時系列Webグラフのノード数】以上上がれば正解！
-      limit_pagerank = before_pagerank + (1.0 / @pageranks_days[date - START_DATE].values.size.to_f)
+      limit_rank = before_rank + (1.0 / @ranks_days[date - START_DATE].values.size.to_f)
 
-      # 当日のPagerankと7日目のPageRankの差分を調べる
+      # 当日のrankと7日目のRankの差分を調べる
       index_date_urls_id = @urls_ids_days[date - START_DATE].values.find_index(urls_id)
-      date_pagerank = @pageranks_days[date - START_DATE].values[index_date_urls_id].to_f
+      date_rank = @ranks_days[date - START_DATE].values[index_date_urls_id].to_f
 
-      if date_pagerank >= limit_pagerank
+      if date_rank >= limit_rank
         up_flag = true
         break
       end
@@ -217,35 +222,6 @@ class CheckPk
   def check_centrality?
     # 中心度が__となっているか調べる
     # 正解なら真、不正解なら偽を返す
-  end
-
-  def create_pageranks_and_urls_ids_days
-    ### 各日のpageranksとurls_idsを紐付ける
-    @pageranks_days = Array.new
-    @urls_ids_days = Array.new
-
-    START_DATE.upto(END_DATE) do |date|
-      print_dateline(date)
-
-      if SKIP_DATES.include?(date)
-        p "#{date} skipped.(#{PAGE})"
-        LOG.info("#{date} skipped.(#{PAGE})")
-        next
-      end
-
-      pageranks = Pagerank.new(date)
-      pageranks.read
-
-      urls_ids = Urls_id.new(date)
-      urls_ids.find(pageranks.values.size)
-
-      print_variable({pageranks_size: pageranks.values.size, urls_ids_size: urls_ids.values.size})
-
-      @pageranks_days.push(pageranks)
-      @urls_ids_days.push(urls_ids)
-
-      print_line
-    end
   end
 
   def print_file_name

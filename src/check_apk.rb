@@ -3,14 +3,17 @@ require File.expand_path(File.dirname(__FILE__)) + '/new/common'
 class CheckApk
   include Common
 
-  def initialize
+  def initialize(target: 'pagerank')
     print_file_name
+
+    p "target: #{target}"
+    @target = target
   end
 
   def run
     TH_MORE_INCS.each do |th_more_inc|
       # check_pkファイルを読み込む
-      read_file_name = "#{RESULTFILE_DIR}check_pk/n#{N_DATE}_#{th_more_inc}times_#{PAGE}_from#{START_DATE.strftime("%Y%m%d")}to#{END_DATE.strftime("%Y%m%d")}_#{CHECK_FLAG}_#{REDUCE_WEIGHT.to_i}reduce#{TAIL_OF_FILE}_#{LIMIT_DOWN_RATE}.csv"
+      read_file_name = "#{RESULTFILE_DIR}check_pk/#{@target}_a#{A_DATE}_b#{B_DATE}_#{th_more_inc}times_#{PAGE}_from#{START_DATE.strftime("%Y%m%d")}to#{END_DATE.strftime("%Y%m%d")}_#{CHECK_FLAG}_#{REDUCE_WEIGHT.to_i}reduce#{TAIL_OF_FILE}_#{LIMIT_DOWN_RATE}.csv"
 
       result_urls_ids = Array.new
       result_check = Array.new
@@ -38,7 +41,7 @@ class CheckApk
         result_check_aves << ave
       end
 
-      result_file_name = "#{RESULTFILE_DIR}check_apk/n#{N_DATE}_#{th_more_inc}times_#{PAGE}_from#{START_DATE.strftime("%Y%m%d")}to#{END_DATE.strftime("%Y%m%d")}_#{CHECK_FLAG}_#{REDUCE_WEIGHT.to_i}reduce#{TAIL_OF_FILE}_#{LIMIT_DOWN_RATE}.csv"
+      result_file_name = "#{RESULTFILE_DIR}check_apk/#{@target}_a#{A_DATE}_b#{B_DATE}_#{th_more_inc}times_#{PAGE}_from#{START_DATE.strftime("%Y%m%d")}to#{END_DATE.strftime("%Y%m%d")}_#{CHECK_FLAG}_#{REDUCE_WEIGHT.to_i}reduce#{TAIL_OF_FILE}_#{LIMIT_DOWN_RATE}.csv"
 
       File.open(result_file_name, 'w') do |result_file|
         result_check_aves.each do |result_check_ave|
