@@ -27,11 +27,13 @@ module Common
   MATLAB = constants['matlab']
 
   # log
-  LOGFILE_NAME = "refactor_#{PAGE}_#{START_DATE.strftime('%Y%m%d')}_#{END_DATE.strftime('%Y%m%d')}.log"
+  LOGFILE_NAME = "webcommunity_#{PAGE}_#{START_DATE.strftime('%Y%m%d')}_#{END_DATE.strftime('%Y%m%d')}.log"
   LOG = Logger.new("#{File.expand_path(File.dirname(__FILE__)).sub(/src\/new/, '')}log/#{LOGFILE_NAME}")
   LOG.level = Logger::INFO
 
   # path
+  RESULT_MAXFLOW_DIR = File.expand_path(File.dirname(__FILE__)).sub(/src\/new/, '') + 'result_maxflow/'
+  RESULT_MATLAB_DIR = File.expand_path(File.dirname(__FILE__)).sub(/src\/new/, '') + 'result_matlab/'
   RESULTFILE_DIR = File.expand_path(File.dirname(__FILE__)).sub(/src\/new/, '') + 'result/'
 
   # threshold
@@ -40,6 +42,9 @@ module Common
   # params
   REDUCE_WEIGHT = constants['reduce_weight']
   TAIL_OF_FILE = constants['tail_of_file']
+  LIMIT_SEEDS_NUM = constants['limit_seeds_num']
+  CHECK_FLAG = constants['check_flag']
+  LIMIT_DOWN_RATE = constants['limit_down_rate']
 
   def matlab?
     MATLAB
