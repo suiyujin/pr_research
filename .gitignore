@@ -16,6 +16,8 @@ config/start_urls_*.txt
 *~
 .DS_Store
 
+src/01_extract_data_2.rb
+src/02_create_linkmatrix_2.rb
 src/03_normalize_matrix.m
 
 src/web_community/sql/*.sql
@@ -25,10 +27,13 @@ src/web_community/calculate_rank_prestige.m
 src/web_community/calculaterankprestige.m
 src/web_community/rank_prestige.m
 
+data/*
+
 result_maxflow/*
 result_matlab/*
 result/pagerank*.txt
 result/timerankprestige/*
+result/timepagerank/*
 result/page_ps/*
 result/page_ps_score_2/*
 result/check_pk/*
