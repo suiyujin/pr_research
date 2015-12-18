@@ -45,6 +45,7 @@ module Common
   LIMIT_SEEDS_NUM = constants['limit_seeds_num']
   CHECK_FLAG = constants['check_flag']
   LIMIT_DOWN_RATE = constants['limit_down_rate']
+  OLD_TABLE_ADD = constants['old_table_add']
 
   def matlab?
     MATLAB
