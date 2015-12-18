@@ -3,7 +3,7 @@ require File.expand_path(File.dirname(__FILE__)) + '/new/common'
 require File.expand_path(File.dirname(__FILE__)) + '/new/pagerank'
 require File.expand_path(File.dirname(__FILE__)) + '/new/urls_id'
 
-class Create_timepr_csv
+class CreateTimeprCsv
   include Common
 
   def initialize
@@ -75,7 +75,7 @@ class Create_timepr_csv
       pageranks = Pagerank.new(date)
       pageranks.read
 
-      urls_ids = Urls_id.new(date)
+      urls_ids = UrlsId.new(date)
       urls_ids.find(pageranks.values.size)
 
       print_variable({pageranks_size: pageranks.values.size, urls_ids_size: urls_ids.values.size})
