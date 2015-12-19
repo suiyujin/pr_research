@@ -76,7 +76,7 @@ class CheckPk
       end
 
       # ファイルに書き出す
-      result_file_name = "#{RESULTFILE_DIR}check_pk/#{@target}_a#{A_DATE}_b#{B_DATE}_#{th_more_inc}times_#{PAGE}_from#{START_DATE.strftime("%Y%m%d")}to#{END_DATE.strftime("%Y%m%d")}_#{CHECK_FLAG}_#{REDUCE_WEIGHT.to_i}reduce#{TAIL_OF_FILE}_#{LIMIT_DOWN_RATE}.csv"
+      result_file_name = "#{RESULTFILE_DIR}check_pk/#{@target}_a#{A_DATE}_b#{B_DATE}_#{th_more_inc}times_#{PAGE}_from#{START_DATE.strftime("%Y%m%d")}to#{END_DATE.strftime("%Y%m%d")}_#{CHECK_FLAG}_#{REDUCE_WEIGHT.to_i}reduce_#{LIMIT_DOWN_RATE}#{TAIL_OF_FILE}.csv"
 
       File.open(result_file_name, 'w') do |result_file|
         result_file.write("#{result_urls_ids.join(',')}\n")
