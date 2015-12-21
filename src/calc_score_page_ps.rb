@@ -53,10 +53,12 @@ class CalcScorePagePs
           if TAIL_OF_FILE == '_withq'
             # Qのスコアを加算
             page_qs = page_p.inlink_pages_by_date[date - START_DATE]
-            page_qs_score = page_qs.inject(0.0) do |sum, page_q|
-              sum += page_q.score_qs_by_date(date, page_ps)
+            if page_qs
+              page_qs_score = page_qs.inject(0.0) do |sum, page_q|
+                sum += page_q.score_qs_by_date(date, page_ps)
+              end
+              page_p.score_r += page_qs_score
             end
-            page_p.score_r += page_qs_score
           end
 
           # 当日のrankと2日日のrankを調べる
@@ -135,19 +137,21 @@ class CalcScorePagePs
 
       # page_pのinlink_pages_by_date(つまりqの集合)を作る
       page_ps.each do |page_p|
-        page_p.inlink_pages_by_date[date_index] = page_p.inlink_urls_ids_by_date[date_index].map do |inlink_urls_id|
-          # @all_page_qsから探す
-          page_q = search_all_page_qs(inlink_urls_id)
-          unless page_q
-            # 含まれていなければ、page_psから探す
-            page_q = search_page_ps(page_ps, inlink_urls_id)
+        if page_p.inlink_urls_ids_by_date[date_index]
+          page_p.inlink_pages_by_date[date_index] = page_p.inlink_urls_ids_by_date[date_index].map do |inlink_urls_id|
+            # @all_page_qsから探す
+            page_q = search_all_page_qs(inlink_urls_id)
             unless page_q
-              # どちらにも含まれていなければ、新しくインスタンスを生成
-              page_q = Page.new(urls_id: inlink_urls_id)
+              # 含まれていなければ、page_psから探す
+              page_q = search_page_ps(page_ps, inlink_urls_id)
+              unless page_q
+                # どちらにも含まれていなければ、新しくインスタンスを生成
+                page_q = Page.new(urls_id: inlink_urls_id)
+              end
+              @all_page_qs << page_q
             end
-            @all_page_qs << page_q
+            page_q
           end
-          page_q
         end
       end
 

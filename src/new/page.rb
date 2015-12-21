@@ -23,8 +23,12 @@ class Page
       admin_id = @admin_ids_by_date[date - START_DATE]
       if admin_id
         base_ids = getbaseids_from_outid(date, admin_id)
-        inlink_urls_ids = base_ids.map do |base_id|
-          geturlsid_from_adminid(date, base_id)
+        if base_ids
+          inlink_urls_ids = base_ids.map do |base_id|
+            geturlsid_from_adminid(date, base_id)
+          end
+        else
+          inlink_urls_ids = nil
         end
       else
         inlink_urls_ids = nil
