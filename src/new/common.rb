@@ -32,6 +32,7 @@ module Common
   LOG.level = Logger::INFO
 
   # path
+  DATAFILE_DIR = File.expand_path(File.dirname(__FILE__)).sub(/src\/new/, '') + 'data/'
   RESULT_MAXFLOW_DIR = File.expand_path(File.dirname(__FILE__)).sub(/src\/new/, '') + 'result_maxflow/'
   RESULT_MATLAB_DIR = File.expand_path(File.dirname(__FILE__)).sub(/src\/new/, '') + 'result_matlab/'
   RESULTFILE_DIR = File.expand_path(File.dirname(__FILE__)).sub(/src\/new/, '') + 'result/'
