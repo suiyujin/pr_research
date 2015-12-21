@@ -16,12 +16,24 @@ class CalcScorePagePs
     @urls_ids_days = urls_ids_days
 
     @target = target
+
+    @all_pages = []
+    @all_page_qs = []
   end
 
   def run
     TH_MORE_INCS.each do |th_more_inc|
       # Rを読み込んでインスタンス生成
       page_ps = read_page_ps(th_more_inc)
+
+      if TAIL_OF_FILE == '_withq'
+        # all_pagesにマージ
+        @all_pages |= page_ps
+
+        # Rから観測全日程のQを生成してスコアを計算しておく
+        ready_page_qs(page_ps)
+        calc_score_page_qs(page_ps)
+      end
 
       ### 3日目から7日目までスコアリングする
       (START_DATE + A_DATE).upto(START_DATE + B_DATE - 1) do |date|
@@ -37,6 +49,15 @@ class CalcScorePagePs
 
           # Rがその日にクロールされていない場合はスコア0とする(次のRへ進む)
           next if urls_id_index.nil?
+
+          if TAIL_OF_FILE == '_withq'
+            # Qのスコアを加算
+            page_qs = page_p.inlink_pages_by_date[date - START_DATE]
+            page_qs_score = page_qs.inject(0.0) do |sum, page_q|
+              sum += page_q.score_qs_by_date(date, page_ps)
+            end
+            page_p.score_r += page_qs_score
+          end
 
           # 当日のrankと2日日のrankを調べる
           before_pr = @ranks_days[1].values[urls_id_index].to_f
@@ -105,6 +126,95 @@ class CalcScorePagePs
     page_ps.select! { |page_p| check_include_all_date?(page_p.urls_id) }
 
     page_ps
+  end
+
+  def ready_page_qs(page_ps)
+    START_DATE.upto(START_DATE + B_DATE - 1) do |date|
+      p "---#{date.to_s}---"
+      date_index = date - START_DATE
+
+      # page_pのinlink_pages_by_date(つまりqの集合)を作る
+      page_ps.each do |page_p|
+        page_p.inlink_pages_by_date[date_index] = page_p.inlink_urls_ids_by_date[date_index].map do |inlink_urls_id|
+          # @all_page_qsから探す
+          page_q = search_all_page_qs(inlink_urls_id)
+          unless page_q
+            # 含まれていなければ、page_psから探す
+            page_q = search_page_ps(page_ps, inlink_urls_id)
+            unless page_q
+              # どちらにも含まれていなければ、新しくインスタンスを生成
+              page_q = Page.new(urls_id: inlink_urls_id)
+            end
+            @all_page_qs << page_q
+          end
+          page_q
+        end
+      end
+
+      # all_pagesにマージ
+      @all_pages |= @all_page_qs
+    end
+
+    p "ready page qs."
+    LOG.info("ready page qs.")
+  end
+
+  def calc_score_page_qs(page_ps)
+    START_DATE.upto(START_DATE + B_DATE - 1) do |date|
+      p "---#{date.to_s}---"
+      date_index = date - START_DATE
+
+      # page_qのoutlink_pages_by_dateを作る
+      @all_page_qs.each do |all_page_q|
+        unless all_page_q.outlink_urls_ids_by_date[date_index]
+          all_page_q.outlink_pages_by_date[date_index] = nil
+          next
+        end
+
+        all_page_q.outlink_pages_by_date[date_index] = all_page_q.outlink_urls_ids_by_date[date_index].map do |outlink_urls_id|
+          # @all_pagesから探す
+          outlink_page = search_all_pages(outlink_urls_id)
+          unless outlink_page
+            # 含まれていなければ、新しくインスタンスを生成
+            outlink_page = Page.new(urls_id: outlink_urls_id)
+            # all_pagesに追加
+            @all_pages << outlink_page
+          end
+          outlink_page
+        end
+        # page_qのスコアを計算する
+        # all_page_q.calc_score_qs_by_date(date, page_ps)
+      end
+    end
+    p "calculated page_qs score."
+    LOG.info("calculated page_qs score.")
+  end
+
+  # @all_pagesを探す
+  # 含まれていなければnilを返す
+  def search_all_pages(urls_id)
+    all_pages_index = @all_pages.index do |all_page|
+      all_page.urls_id == urls_id
+    end
+    all_pages_index ? @all_pages[all_pages_index] : nil
+  end
+
+  # @all_page_qsを探す
+  # 含まれていなければnilを返す
+  def search_all_page_qs(urls_id)
+    all_page_qs_index = @all_page_qs.index do |all_page_q|
+      all_page_q.urls_id == urls_id
+    end
+    all_page_qs_index ? @all_page_qs[all_page_qs_index] : nil
+  end
+
+  # page_psを探す
+  # 含まれていなければnilを返す
+  def search_page_ps(page_ps, urls_id)
+    page_ps_index = page_ps.index do |page_p|
+      page_p.urls_id == urls_id
+    end
+    page_ps_index ? page_ps[page_ps_index] : nil
   end
 
   def create_csv(page_ps_sort_by_score_r, th_more_inc)
