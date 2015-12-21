@@ -1,4 +1,5 @@
 require File.expand_path(File.dirname(__FILE__)) + '/new/common'
+require File.expand_path(File.dirname(__FILE__)) + '/new/page'
 require File.expand_path(File.dirname(__FILE__)) + '/new/rankprestige'
 require File.expand_path(File.dirname(__FILE__)) + '/new/pagerank'
 require File.expand_path(File.dirname(__FILE__)) + '/new/urls_id'
@@ -19,8 +20,7 @@ class CalcScorePagePs
 
   def run
     TH_MORE_INCS.each do |th_more_inc|
-      # Rを読み込む
-      # idとscoreのハッシュを用意する
+      # Rを読み込んでインスタンス生成
       page_ps = read_page_ps(th_more_inc)
 
       ### 3日目から7日目までスコアリングする
@@ -32,7 +32,7 @@ class CalcScorePagePs
         page_ps.each do |page_p|
           # urls_idのindexを調べる
           urls_id_index = @urls_ids_days[date - START_DATE].values.find_index do |urls_id_by_date|
-            urls_id_by_date == page_p[:urls_id]
+            urls_id_by_date == page_p.urls_id
           end
 
           # Rがその日にクロールされていない場合はスコア0とする(次のRへ進む)
@@ -43,35 +43,35 @@ class CalcScorePagePs
           after_pr = @ranks_days[date - START_DATE].values[urls_id_index].to_f
 
           ### 比較して結果に応じてスコアリング
-          # 正の場合：上昇率を加算
-          # 負の場合：下降率を減算
           diff_pr = after_pr - before_pr
 
-          # page_p[:score] += (diff_pr / before_pr)
+          # page_p.score_r += (diff_pr / before_pr)
 
+          # 正の場合：上昇率を加算
+          # 負の場合：下降率を減算
           if diff_pr >= 0
             percentage_raise = (diff_pr / before_pr)
-            page_p[:score] += percentage_raise
+            page_p.score_r += percentage_raise
 #
 #            # さらに上がり続けている場合はボーナスも加える
 #            # (上がり続けている分全て足す)
-#            page_p[:score] += page_p[:bonus_score]
+#            page_p.score_r += page_p.bonus_score_r
 #            # 次のためにボーナスを増やす
-#            page_p[:bonus_score] += percentage_raise
+#            page_p.bonus_score_r += percentage_raise
           else
-            page_p[:score] += (diff_pr / before_pr) * REDUCE_WEIGHT
+            page_p.score_r += (diff_pr / before_pr) * REDUCE_WEIGHT
 #
 #            # 次のボーナスを0にする
-#            page_p[:bonus_score] = 0.0
+#            page_p.bonus_score_r = 0.0
           end
         end
       end # date
 
       # Rをスコアが高い順にファイルへ書き込む
-      # urls_idとscore
-      page_ps_sort_by_score = page_ps.sort_by { |page_p| page_p[:score] }.reverse
+      # urls_idとscore_r
+      page_ps_sort_by_score_r = page_ps.sort_by(&:score_r).reverse
 
-      create_csv(page_ps_sort_by_score, th_more_inc)
+      create_csv(page_ps_sort_by_score_r, th_more_inc)
     end # th_more_incs
   end
 
@@ -97,34 +97,27 @@ class CalcScorePagePs
     p "page_ps_date.size: #{page_ps_date.size}"
     LOG.info("page_ps_date.size: #{page_ps_date.size}")
 
-    page_ps = []
-    page_ps_urls_ids.each_with_index do |page_ps_urls_id, index|
-      page_ps.push(
-        {
-          urls_id: page_ps_urls_id,
-          date: (START_DATE + page_ps_date[index].to_i),
-          score: 0.0,
-          bonus_score: 0.0
-        }
-      )
+    page_ps = page_ps_urls_ids.map do |page_ps_urls_id|
+      Page.new(urls_id: page_ps_urls_id)
     end
 
     # 全日程に結果が含まれているページのみに絞る
-    page_ps.select! { |page_p| check_include_all_date?(page_p[:urls_id]) }
+    page_ps.select! { |page_p| check_include_all_date?(page_p.urls_id) }
 
     page_ps
   end
 
-  def create_csv(page_ps_sort_by_score, th_more_inc)
+  def create_csv(page_ps_sort_by_score_r, th_more_inc)
     # 書き込み用配列を用意
-    urls_ids, dates, scores = page_ps_sort_by_score.map(&:values).transpose
+    urls_ids = page_ps_sort_by_score_r.map(&:urls_id)
+    score_rs = page_ps_sort_by_score_r.map(&:score_r)
 
     write_file_path = "#{RESULTFILE_DIR}page_ps_score_2/#{@target}_score_a#{A_DATE}_b#{B_DATE}_#{th_more_inc}times_#{PAGE}_from#{START_DATE.strftime("%Y%m%d")}to#{END_DATE.strftime("%Y%m%d")}_#{REDUCE_WEIGHT.to_i}reduce#{TAIL_OF_FILE}.csv"
 
     File.open(write_file_path, 'w') do |write_file|
       urls_ids.each { |urls_id| write_file.write("#{urls_id},") }
       write_file.write("\n")
-      scores.each { |score| write_file.write("#{score},") }
+      score_rs.each { |score_r| write_file.write("#{score_r},") }
     end
 
     p "#{write_file_path} writed."
