@@ -42,8 +42,12 @@ class Page
       admin_id = @admin_ids_by_date[date - START_DATE]
       if admin_id
         out_ids = getoutids_from_baseid(date, admin_id)
-        outlink_urls_ids = out_ids.map do |out_id|
-          geturlsid_from_adminid(date, out_id)
+        if out_ids
+          outlink_urls_ids = out_ids.map do |out_id|
+            geturlsid_from_adminid(date, out_id)
+          end
+        else
+          outlink_urls_ids = nil
         end
       else
         outlink_urls_ids = nil
