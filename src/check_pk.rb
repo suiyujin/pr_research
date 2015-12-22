@@ -58,6 +58,8 @@ class CheckPk
           # 条件に適合した場合は1, 適合しなかった場合は0を結果とする
           if CHECK_FLAG == '21_above'
             result_check << (check_21_above_max_before7?(check_urls_id) ? 1 : 0)
+          elsif CHECK_FLAG == '15to21_above'
+            result_check << (check_15to21_above_max_before7?(check_urls_id) ? 1 : 0)
           elsif CHECK_FLAG == 'sudipr_uppr'
             if check_sum_diff_ranks?(check_urls_id) && check_up_rank?(check_urls_id)
               result_check << 1
@@ -102,6 +104,34 @@ class CheckPk
     end
 
     include_flag
+  end
+
+  def check_15to21_above_max_before7?(urls_id)
+    # 15〜21日目の平均Rankが7日目までの最大Rankから閾値を超えて下がっていなければ正解
+
+    # 7日目までの最大PRを調べる
+    max_rank = 0.0
+
+    (START_DATE).upto(START_DATE + 6) do |date|
+      index_urls_id = @urls_ids_days[date - START_DATE].values.find_index(urls_id)
+      date_rank = @ranks_days[date - START_DATE].values[index_urls_id].to_f
+
+      max_rank = (max_rank < date_rank) ? date_rank : max_rank
+    end
+
+    # 15〜21日目の平均Rankが閾値以上下降していなければ正解
+    last_ave_rank = 0.0
+    END_DATE.downto(END_DATE - 6) do |date|
+      index_urls_id = @urls_ids_days[date - START_DATE].values.find_index(urls_id)
+      last_ave_rank += @ranks_days[date - START_DATE].values[index_urls_id].to_f
+    end
+    last_ave_rank /= 7.0
+
+    # 閾値：1/【最終日の総ページ数】
+    #threshold = (1.0 / @urls_ids_days.last.values.size.to_f)
+
+    #((max_rank - threshold) <= last_rank) ? true : false
+    (last_ave_rank >= (max_rank * (LIMIT_DOWN_RATE.to_f / 100.0))) ? true : false
   end
 
   def check_21_above_max_before7?(urls_id)
