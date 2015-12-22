@@ -46,6 +46,9 @@ class CalcScorePagePs
           urls_id_index = @urls_ids_days[date - START_DATE].values.find_index do |urls_id_by_date|
             urls_id_by_date == page_p.urls_id
           end
+          urls_id_index_date2 = @urls_ids_days[1].values.find_index do |urls_id_by_date|
+            urls_id_by_date == page_p.urls_id
+          end
 
           # Rがその日にクロールされていない場合はスコア0とする(次のRへ進む)
           next if urls_id_index.nil?
@@ -62,7 +65,7 @@ class CalcScorePagePs
           end
 
           # 当日のrankと2日日のrankを調べる
-          before_pr = @ranks_days[1].values[urls_id_index].to_f
+          before_pr = @ranks_days[1].values[urls_id_index_date2].to_f
           after_pr = @ranks_days[date - START_DATE].values[urls_id_index].to_f
 
           ### 比較して結果に応じてスコアリング
