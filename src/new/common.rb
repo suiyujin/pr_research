@@ -47,6 +47,7 @@ module Common
   CHECK_FLAG = constants['check_flag']
   LIMIT_DOWN_RATE = constants['limit_down_rate']
   OLD_TABLE_ADD = constants['old_table_add']
+  LIMIT_DESC_RATE = constants['limit_desc_rate']
 
   def matlab?
     MATLAB
