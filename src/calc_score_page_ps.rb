@@ -33,6 +33,15 @@ class CalcScorePagePs
         # Rから観測全日程のQを生成して出リンク先を調べておく
         ready_page_qs(page_ps)
         find_outlink_pages_from_page_qs(page_ps)
+      elsif TAIL_OF_FILE == '_penaltyq'
+        # all_pagesにマージ
+        @all_pages |= page_ps
+
+        # Rから観測全日程のQを生成して出リンク先を調べておく
+        ready_page_qs(page_ps)
+        find_outlink_pages_from_page_qs(page_ps)
+
+        penalty_page_qs = calc_penalty_page_qs(page_ps, th_more_inc)
       end
 
       ### 3日目から7日目までスコアリングする
@@ -61,6 +70,14 @@ class CalcScorePagePs
                 sum += page_q.score_qs_by_date(date, page_ps)
               end
               page_p.score_r += page_qs_score
+            end
+          elsif TAIL_OF_FILE == '_penaltyq'
+            # ペナルティのQからリンクされていたRを取り除く
+            count = penalty_page_qs.count do |page_q|
+              page_q.outlink_pages_by_date[1].include?(page_p)
+            end
+            if count >= 1
+              next
             end
           end
 
@@ -103,6 +120,78 @@ class CalcScorePagePs
 
   private
 
+  def calc_penalty_page_qs(page_ps, th_more_inc)
+    penalty_page_qs = []
+    # Qの出リンク先のページがその後どのように変動するか調査する
+
+    # checked_pages = []
+    # 2日目を基準とする
+    date = START_DATE + A_DATE - 1
+    p "date: #{date}"
+    LOG.info("date: #{date}")
+
+    all_page_qs_status = @all_page_qs.map do |page_q|
+      # (START_DATE + A_DATE).upto(START_DATE + B_DATE - 1) do |date|
+
+      date_index = date - START_DATE
+
+      page_qs_status = page_q.outlink_pages_by_date[date_index].map do |outlink_page|
+        # 3日目から7日目まで調べる
+        start_term = START_DATE + A_DATE
+        end_term = START_DATE + B_DATE - 1
+        desc_page?(start_term, end_term, outlink_page, th_more_inc)
+      end
+
+      # 指定割合以上下降しているQを調べる
+      # 指定割合以上下降していればtrueを返す
+      desc_page_rate = (page_qs_status.count(true).to_f / page_qs_status.size.to_f) * 100.0
+      (desc_page_rate >= LIMIT_DESC_RATE)
+    end
+
+    # 結果を出力
+    p "all_page_qs size: #{@all_page_qs.size}"
+    p "all_page_qs_status size: #{all_page_qs_status.size}"
+    p "all_page_qs desc size: #{all_page_qs_status.count(true)}"
+    p "all_page_qs not desc size: #{all_page_qs_status.count(false)}"
+    LOG.info("all_page_qs size: #{@all_page_qs.size}")
+    LOG.info("all_page_qs size: #{all_page_qs_status.size}")
+    LOG.info("all_page_qs desc size: #{all_page_qs_status.count(true)}")
+    LOG.info("all_page_qs not desc size: #{all_page_qs_status.count(false)}")
+
+    # TODO: 下降しているQからリンクされていたページRのスコアにペナルティを与える
+    penalty_page_qs |= @all_page_qs.select.with_index do |_, i|
+      all_page_qs_status[i]
+    end
+
+    penalty_page_qs
+  end
+
+  def desc_page?(start_term, end_term, page, th_more_inc)
+    # デフォルトの最大値は2日目のPR
+    max_rank = @ranks_days[A_DATE - 1].values[@urls_ids_days[A_DATE - 1].values.index(page.urls_id)].to_f
+
+    start_term.upto(end_term) do |term|
+      # rank, urls_idを取得
+      ranks = @ranks_days[term - START_DATE].values
+      urls_ids = @urls_ids_days[term - START_DATE].values
+
+      # 含まれない場合は飛ばす
+      next unless urls_ids.include?(page.urls_id)
+
+      rank = ranks[urls_ids.index(page.urls_id)]
+      if rank.to_f > max_rank
+        # それまでの最大値より大きければ、最大値を更新
+        max_rank = rank.to_f
+      else
+        # 最大値より閾値を越えて下がっていればtrueを返す
+        limit_more_desc = (1.0 / urls_ids.size.to_f) * th_more_inc.to_f
+        return true if (max_rank - rank.to_f) >= limit_more_desc
+      end
+    end
+
+    false
+  end
+
   def read_page_ps(th_more_inc)
     read_file_name = "#{RESULTFILE_DIR}page_ps/#{@target}_a#{A_DATE}_#{th_more_inc}times_#{PAGE}_from#{START_DATE.strftime('%Y%m%d')}to#{END_DATE.strftime('%Y%m%d')}.csv"
 
@@ -134,7 +223,14 @@ class CalcScorePagePs
   end
 
   def ready_page_qs(page_ps)
-    START_DATE.upto(START_DATE + B_DATE - 1) do |date|
+    if TAIL_OF_FILE == '_penaltyq'
+      st_date = en_date = START_DATE + A_DATE - 1
+    else
+      st_date = START_DATE
+      en_date = START_DATE + B_DATE - 1
+    end
+
+    st_date.upto(en_date) do |date|
       p "---#{date.to_s}---"
       date_index = date - START_DATE
 
@@ -167,7 +263,14 @@ class CalcScorePagePs
   end
 
   def find_outlink_pages_from_page_qs(page_ps)
-    START_DATE.upto(START_DATE + B_DATE - 1) do |date|
+    if TAIL_OF_FILE == '_penaltyq'
+      st_date = en_date = START_DATE + A_DATE - 1
+    else
+      st_date = START_DATE
+      en_date = START_DATE + B_DATE - 1
+    end
+
+    st_date.upto(en_date) do |date|
       p "---#{date.to_s}---"
       date_index = date - START_DATE
 
