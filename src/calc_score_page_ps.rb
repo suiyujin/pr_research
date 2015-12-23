@@ -30,9 +30,9 @@ class CalcScorePagePs
         # all_pagesにマージ
         @all_pages |= page_ps
 
-        # Rから観測全日程のQを生成してスコアを計算しておく
+        # Rから観測全日程のQを生成して出リンク先を調べておく
         ready_page_qs(page_ps)
-        calc_score_page_qs(page_ps)
+        find_outlink_pages_from_page_qs(page_ps)
       end
 
       ### 3日目から7日目までスコアリングする
@@ -166,7 +166,7 @@ class CalcScorePagePs
     LOG.info("ready page qs.")
   end
 
-  def calc_score_page_qs(page_ps)
+  def find_outlink_pages_from_page_qs(page_ps)
     START_DATE.upto(START_DATE + B_DATE - 1) do |date|
       p "---#{date.to_s}---"
       date_index = date - START_DATE
@@ -193,8 +193,8 @@ class CalcScorePagePs
         # all_page_q.calc_score_qs_by_date(date, page_ps)
       end
     end
-    p "calculated page_qs score."
-    LOG.info("calculated page_qs score.")
+    p "find outlink pages form page_qs."
+    LOG.info("find outlink pages form page_qs.")
   end
 
   # @all_pagesを探す
