@@ -332,7 +332,11 @@ class CalcScorePagePs
     urls_ids = page_ps_sort_by_score_r.map(&:urls_id)
     score_rs = page_ps_sort_by_score_r.map(&:score_r)
 
-    write_file_path = "#{RESULTFILE_DIR}page_ps_score_2/#{@target}_score_a#{A_DATE}_b#{B_DATE}_#{th_more_inc}times_#{PAGE}_from#{START_DATE.strftime("%Y%m%d")}to#{END_DATE.strftime("%Y%m%d")}_#{REDUCE_WEIGHT.to_i}reduce#{TAIL_OF_FILE}.csv"
+    if CHECK_FLAG == '_penaltyq'
+      write_file_path = "#{RESULTFILE_DIR}page_ps_score_2/#{@target}_score_a#{A_DATE}_b#{B_DATE}_#{th_more_inc}times_#{PAGE}_from#{START_DATE.strftime("%Y%m%d")}to#{END_DATE.strftime("%Y%m%d")}_#{REDUCE_WEIGHT.to_i}reduce_#{LIMIT_DESC_RATE.to_i}desc#{TAIL_OF_FILE}.csv"
+    else
+      write_file_path = "#{RESULTFILE_DIR}page_ps_score_2/#{@target}_score_a#{A_DATE}_b#{B_DATE}_#{th_more_inc}times_#{PAGE}_from#{START_DATE.strftime("%Y%m%d")}to#{END_DATE.strftime("%Y%m%d")}_#{REDUCE_WEIGHT.to_i}reduce#{TAIL_OF_FILE}.csv"
+    end
 
     File.open(write_file_path, 'w') do |write_file|
       urls_ids.each { |urls_id| write_file.write("#{urls_id},") }
