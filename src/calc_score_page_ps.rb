@@ -77,6 +77,7 @@ class CalcScorePagePs
               page_q.outlink_pages_by_date[1].include?(page_p)
             end
             if count >= 1
+              page_ps.delete(page_p)
               next
             end
           end
