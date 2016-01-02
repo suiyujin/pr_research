@@ -27,6 +27,9 @@ src/web_community/calculate_rank_prestige.m
 src/web_community/calculaterankprestige.m
 src/web_community/rank_prestige.m
 
+src/r_scripts/.RData
+src/r_scripts/.Rhistory
+
 data/*
 
 result_maxflow/*
