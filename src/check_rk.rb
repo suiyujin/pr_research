@@ -15,6 +15,7 @@ class CheckRk
       # check_pkファイルを読み込む
       if TAIL_OF_FILE == '_penaltyq'
         read_file_name = "#{RESULTFILE_DIR}check_pk/#{@target}_a#{A_DATE}_b#{B_DATE}_#{th_more_inc}times_#{PAGE}_from#{START_DATE.strftime("%Y%m%d")}to#{END_DATE.strftime("%Y%m%d")}_#{CHECK_FLAG}_#{REDUCE_WEIGHT.to_i}reduce_#{LIMIT_DESC_RATE.to_i}desc_#{LIMIT_DOWN_RATE.to_i}#{TAIL_OF_FILE}.csv"
+        default_file_name = "#{RESULTFILE_DIR}check_pk/#{@target}_a#{A_DATE}_b#{B_DATE}_#{th_more_inc}times_#{PAGE}_from#{START_DATE.strftime("%Y%m%d")}to#{END_DATE.strftime("%Y%m%d")}_#{CHECK_FLAG}_#{REDUCE_WEIGHT.to_i}reduce_#{LIMIT_DOWN_RATE.to_i}#{TAIL_OF_FILE}.csv"
       else
         read_file_name = "#{RESULTFILE_DIR}check_pk/#{@target}_a#{A_DATE}_b#{B_DATE}_#{th_more_inc}times_#{PAGE}_from#{START_DATE.strftime("%Y%m%d")}to#{END_DATE.strftime("%Y%m%d")}_#{CHECK_FLAG}_#{REDUCE_WEIGHT.to_i}reduce_#{LIMIT_DOWN_RATE.to_i}#{TAIL_OF_FILE}.csv"
       end
@@ -35,7 +36,28 @@ class CheckRk
       LOG.info("result_urls_ids.size: #{result_urls_ids.size}")
 
       # result_check配列から再現率を計算する
-      collect_count = result_check.count { |result| result == '1' }
+      if TAIL_OF_FILE == '_penaltyq'
+        default_urls_ids = []
+        default_check = []
+
+        File.open(default_file_name, 'r') do |default_file|
+          urls_ids_str, check_str = default_file.readlines
+          default_urls_ids = urls_ids_str.chomp.split(',')
+          default_check = check_str.chomp.split(',')
+        end
+
+        p "#{default_file_name} read."
+        LOG.info("#{default_file_name} read.")
+
+        p "default_urls_ids.size: #{default_urls_ids.size}"
+        LOG.info("default_urls_ids.size: #{default_urls_ids.size}")
+
+        # collect_countをdefaultの正解数にする
+        collect_count = default_check.count { |result| result == '1' }
+      else
+        collect_count = result_check.count { |result| result == '1' }
+      end
+
       result_check_rs = result_check.size.times.map do |index|
         result_check[0..index].map(&:to_i).inject(:+).to_f / collect_count.to_f
       end
