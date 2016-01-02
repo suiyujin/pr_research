@@ -41,4 +41,5 @@ result/page_ps/*
 result/page_ps_score_2/*
 result/check_pk/*
 result/check_apk/*
+result/check_r/*
 !.keep
