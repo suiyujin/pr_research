@@ -22,4 +22,5 @@ reduce_weight: 1.0
 tail_of_file: ''
 limit_seeds_num: 20
 check_flag: '21_above'
-limit_down_rate: 90
+limit_down_rate: 90.0
+limit_desc_rate: 70.0

@@ -7,3 +7,5 @@ gem 'mysql2'
 gem 'pry'
 gem 'pry-doc'
 gem 'pry-byebug'
+
+gem 'rubyXL'
