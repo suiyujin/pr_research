@@ -21,7 +21,7 @@ class MakeXlsxFile
       write_info(worksheet, th_more_inc)
       if TAIL_OF_FILE == '_penaltyq'
         write_lavel_penaltyq(worksheet)
-        limit_desc_rates = ['70', '75', '80', '90']
+        limit_desc_rates = (PAGE == 'bbc' || PAGE == 'cnn') ? ['70', '80', '90'] : ['70', '75', '80', '90']
 
         # defaultファイル名
         default_file_name = "#{@target}_a#{A_DATE}_b#{B_DATE}_#{th_more_inc}times_#{PAGE}_from#{START_DATE.strftime("%Y%m%d")}to#{END_DATE.strftime("%Y%m%d")}_#{CHECK_FLAG}_#{REDUCE_WEIGHT.to_i}reduce_#{LIMIT_DOWN_RATE.to_i}.csv"
