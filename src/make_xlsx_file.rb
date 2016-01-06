@@ -27,6 +27,14 @@ class MakeXlsxFile
         default_file_name = "#{@target}_a#{A_DATE}_b#{B_DATE}_#{th_more_inc}times_#{PAGE}_from#{START_DATE.strftime("%Y%m%d")}to#{END_DATE.strftime("%Y%m%d")}_#{CHECK_FLAG}_#{REDUCE_WEIGHT.to_i}reduce_#{LIMIT_DOWN_RATE.to_i}.csv"
         default_apk_file_path = "#{RESULTFILE_DIR}check_apk/#{default_file_name}"
         default_rk_file_path = "#{RESULTFILE_DIR}check_rk/#{default_file_name}"
+      elsif TAIL_OF_FILE == '_withq'
+        write_lavel_withq(worksheet)
+        limit_desc_rates = ['']
+
+        # defaultファイル名
+        default_file_name = "#{@target}_a#{A_DATE}_b#{B_DATE}_#{th_more_inc}times_#{PAGE}_from#{START_DATE.strftime("%Y%m%d")}to#{END_DATE.strftime("%Y%m%d")}_#{CHECK_FLAG}_#{REDUCE_WEIGHT.to_i}reduce_#{LIMIT_DOWN_RATE.to_i}.csv"
+        default_apk_file_path = "#{RESULTFILE_DIR}check_apk/#{default_file_name}"
+        default_rk_file_path = "#{RESULTFILE_DIR}check_rk/#{default_file_name}"
       else
         write_lavel(worksheet)
         limit_desc_rates = ['']
@@ -58,6 +66,11 @@ class MakeXlsxFile
           write_data(worksheet, col_index: (5 + desc_index), row_start_index: 2, data: result_rk.map(&:to_f))
           # precision
           write_data(worksheet, col_index: (11 + desc_index), row_start_index: 2, data: result_apk.map(&:to_f))
+        elsif TAIL_OF_FILE == '_withq'
+          # recall
+          write_data(worksheet, col_index: 5, row_start_index: 2, data: result_rk.map(&:to_f))
+          # precision
+          write_data(worksheet, col_index: 8, row_start_index: 2, data: result_apk.map(&:to_f))
         else
           # k
           write_data(worksheet, col_index: 3, row_start_index: 1, data: (1..result_apk.size).to_a)
@@ -86,6 +99,23 @@ class MakeXlsxFile
         write_data(worksheet, col_index: 9, row_start_index: 2, data: (1..result_apk.size).to_a)
         # default precision
         write_data(worksheet, col_index: 10, row_start_index: 2, data: result_apk.map(&:to_f))
+      elsif TAIL_OF_FILE == '_withq' && default_apk_file_path && default_rk_file_path
+        result_apk = read_file(default_apk_file_path)
+        result_rk = read_file(default_rk_file_path)
+
+        p "default result_apk.size: #{result_apk.size}"
+        LOG.info("default result_apk.size: #{result_apk.size}")
+        p "default result_rk.size: #{result_rk.size}"
+        LOG.info("default result_rk.size: #{result_rk.size}")
+
+        # k
+        write_data(worksheet, col_index: 3, row_start_index: 2, data: (1..result_apk.size).to_a)
+        # default recall
+        write_data(worksheet, col_index: 4, row_start_index: 2, data: result_rk.map(&:to_f))
+        # k
+        write_data(worksheet, col_index: 6, row_start_index: 2, data: (1..result_apk.size).to_a)
+        # default precision
+        write_data(worksheet, col_index: 7, row_start_index: 2, data: result_apk.map(&:to_f))
       end
 
       # xlsxファイルを保存する
@@ -131,6 +161,19 @@ class MakeXlsxFile
     worksheet.add_cell(0, 3, 'k')
     worksheet.add_cell(0, 4, 'recall')
     worksheet.add_cell(0, 5, 'precision')
+  end
+
+  def write_lavel_withq(worksheet)
+    worksheet.add_cell(0, 3, 'recall')
+    worksheet.add_cell(0, 6, 'precision')
+
+    worksheet.add_cell(1, 3, 'k')
+    worksheet.add_cell(1, 4, 'default')
+    worksheet.add_cell(1, 5, '2-A')
+
+    worksheet.add_cell(1, 6, 'k')
+    worksheet.add_cell(1, 7, 'default')
+    worksheet.add_cell(1, 8, '2-A')
   end
 
   def write_lavel_penaltyq(worksheet)
